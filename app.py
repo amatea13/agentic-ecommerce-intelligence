@@ -189,6 +189,19 @@ def categorize_articles(articles):
     return {name: items for name, items in categories.items() if items}
 
 
+def get_article_insight(article):
+    raw_summary = re.sub(r"<[^>]+>", "", article.get("summary", "")).strip()
+    if not raw_summary:
+        return "No summary available."
+
+    sentences = [segment.strip() for segment in re.split(r"(?<=[.!?])\s+", raw_summary) if segment.strip()]
+    if not sentences:
+        return raw_summary[:180]
+
+    first_sentence = sentences[0]
+    return first_sentence if len(first_sentence) <= 220 else first_sentence[:217] + "..."
+
+
 def generate_mckinsey_email(articles):
     today = datetime.now().strftime("%B %d, %Y")
     categorized = categorize_articles(articles)
@@ -233,10 +246,7 @@ def generate_mckinsey_email(articles):
                 f"         Source: {article['source']} ({article['region']}) | {article['date']}"
             )
             if article.get("summary"):
-                raw_summary = re.sub(r"<[^>]+>", "", article["summary"])
-                first_sentence = (raw_summary.split(". ")[0] + ".").strip()
-                if len(first_sentence) > 20:
-                    lines.append(f"         Insight: {first_sentence}")
+                lines.append(f"         Insight: {get_article_insight(article)}")
             lines.append("")
 
     lines.append("")
@@ -286,6 +296,93 @@ def generate_mckinsey_email(articles):
     return "\n".join(lines)
 
 
+def generate_executive_summary(articles):
+    today = datetime.now().strftime("%B %d, %Y")
+    regions = {"World": [], "Europe": []}
+
+    for article in articles:
+        region_name = "Europe" if article["region"] == "Europe" else "World"
+        regions[region_name].append(article)
+
+    lines = []
+    lines.append(f"EXECUTIVE SUMMARY — AGENTIC E-COMMERCE | {today}")
+    lines.append("")
+    lines.append(
+        "This briefing synthesizes the most relevant developments across World and Europe "
+        "into a MECE structure for executive review and direct email use."
+    )
+    lines.append("")
+    lines.append("AT A GLANCE")
+    lines.append("─" * 60)
+    lines.append(
+        f"{len(articles)} relevant developments were identified across "
+        f"{sum(1 for items in regions.values() if items)} geographies."
+    )
+    lines.append(
+        "The headline message is that agentic AI is moving closer to practical commerce deployment "
+        "while retailers continue to adapt operating models, customer experiences, and supporting platforms."
+    )
+
+    section_num = 0
+    for region_name in ["World", "Europe"]:
+        region_articles = regions[region_name]
+        if not region_articles:
+            continue
+
+        section_num += 1
+        region_categories = categorize_articles(region_articles)
+        lines.append("")
+        lines.append(f"{section_num}. {region_name.upper()}")
+        lines.append("─" * 60)
+        lines.append(
+            f"{region_name} developments cluster into {len(region_categories)} mutually exclusive themes "
+            "with clear strategic implications for digital commerce."
+        )
+
+        theme_num = 0
+        for category, items in region_categories.items():
+            theme_num += 1
+            lines.append("")
+            lines.append(f"   {section_num}.{theme_num} {category}")
+            for item_num, article in enumerate(items, 1):
+                lines.append(f"      - {article['title']}")
+                lines.append(
+                    f"        Why it matters: {get_article_insight(article)}"
+                )
+                lines.append(
+                    f"        Source: {article['source']} | {article['date']} | {article['link']}"
+                )
+
+    implications_section = section_num + 1
+    sources_section = implications_section + 1
+
+    lines.append("")
+    lines.append(f"{implications_section}. EXECUTIVE IMPLICATIONS")
+    lines.append("─" * 60)
+    lines.append(
+        "1. Capability race: Competitive differentiation is increasingly tied to how quickly firms "
+        "translate agentic AI from pilots into scalable commerce use cases."
+    )
+    lines.append(
+        "2. Operating model pressure: The value opportunity depends on stronger data, integration, "
+        "and cross-functional coordination across commercial and technology teams."
+    )
+    lines.append(
+        "3. Geographic nuance: Europe remains shaped by regional retail dynamics and operating constraints, "
+        "while World developments signal the broader pace of platform and capability innovation."
+    )
+
+    lines.append("")
+    lines.append(f"{sources_section}. SOURCE LINKS")
+    lines.append("─" * 60)
+    for article in articles:
+        lines.append(
+            f"- {article['title']} ({article['source']}, {article['region']}, {article['date']}): {article['link']}"
+        )
+
+    return "\n".join(lines)
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -312,6 +409,17 @@ def generate_email():
 
     email = generate_mckinsey_email(selected)
     return jsonify({"email": email})
+
+
+@app.route("/api/generate-summary", methods=["POST"])
+def generate_summary():
+    data = request.get_json()
+    selected = data.get("articles", [])
+    if not selected:
+        return jsonify({"error": "No articles selected"}), 400
+
+    summary = generate_executive_summary(selected)
+    return jsonify({"summary": summary})
 
 
 if __name__ == "__main__":

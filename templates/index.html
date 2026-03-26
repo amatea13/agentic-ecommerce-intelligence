@@ -383,13 +383,38 @@
     .modal-header h2 { font-size: 16px; font-weight: 600; }
     .modal-header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 24px 0;
+    }
+
+    .modal-tab {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all .15s;
+    }
+
+    .modal-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     .modal-body {
       flex: 1;
       overflow-y: auto;
       padding: 20px 24px;
     }
 
-    #email-output {
+    .output-panel {
+      display: none;
       font-family: "Courier New", Courier, monospace;
       font-size: 13px;
       line-height: 1.7;
@@ -400,6 +425,15 @@
       padding: 20px;
       color: var(--text);
       min-height: 300px;
+    }
+
+    .output-panel.active {
+      display: block;
+    }
+
+    #email-output,
+    #summary-output {
+      font-family: "Courier New", Courier, monospace;
     }
 
     .modal-footer {
@@ -503,6 +537,7 @@
   <span id="selection-label">0 articles selected</span>
   <div class="bottom-actions">
     <button class="btn btn-clear" id="clear-btn">Clear selection</button>
+    <button class="btn btn-white" id="summary-btn">Summary Tab</button>
     <button class="btn btn-white" id="generate-btn">✉ Generate Email</button>
   </div>
 </div>
@@ -511,13 +546,22 @@
   <div class="modal">
     <div class="modal-header">
       <div>
-        <h2>McKinsey-Style Briefing Email</h2>
-        <p>MECE structured · Executive-ready · Copy and send</p>
+        <h2 id="modal-title">McKinsey-Style Briefing Output</h2>
+        <p id="modal-subtitle">MECE structured · Executive-ready · Copy and send</p>
       </div>
       <button class="btn btn-ghost" id="modal-close">✕</button>
     </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="email-tab">Email Draft</button>
+      <button class="modal-tab" id="summary-tab">Executive Summary</button>
+    </div>
     <div class="modal-body">
-      <div id="email-output"></div>
+      <div class="output-panel active" id="email-panel">
+        <div id="email-output"></div>
+      </div>
+      <div class="output-panel" id="summary-panel">
+        <div id="summary-output"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" id="modal-close-2">Close</button>
@@ -533,6 +577,7 @@
   let selectedIds = new Set();
   let currentFilter = "all";
   let searchQuery = "";
+  let activeOutputTab = "email";
 
   async function fetchNews() {
     showLoading(true);
@@ -642,6 +687,7 @@
   async function generateEmail() {
     const articles = allArticles.filter((article) => selectedIds.has(article.id));
     openModal();
+    setActiveOutputTab("email");
     document.getElementById("email-output").innerHTML =
       '<div class="generating"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div>Composing McKinsey-style briefing…</div>';
 
@@ -661,6 +707,45 @@
     }
   }
 
+  async function generateSummary() {
+    const articles = allArticles.filter((article) => selectedIds.has(article.id));
+    openModal();
+    setActiveOutputTab("summary");
+    document.getElementById("summary-output").innerHTML =
+      '<div class="generating"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div>Drafting executive summary with links…</div>';
+
+    try {
+      const res = await fetch("/api/generate-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articles }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      document.getElementById("summary-output").textContent = data.summary;
+    } catch (err) {
+      document.getElementById("summary-output").textContent = "⚠ Error generating executive summary. Please try again.";
+    }
+  }
+
+  function setActiveOutputTab(tabName) {
+    activeOutputTab = tabName;
+    const isEmail = tabName === "email";
+    document.getElementById("email-tab").classList.toggle("active", isEmail);
+    document.getElementById("summary-tab").classList.toggle("active", !isEmail);
+    document.getElementById("email-panel").classList.toggle("active", isEmail);
+    document.getElementById("summary-panel").classList.toggle("active", !isEmail);
+    document.getElementById("modal-title").textContent = isEmail
+      ? "McKinsey-Style Briefing Email"
+      : "Executive Summary for Email";
+    document.getElementById("modal-subtitle").textContent = isEmail
+      ? "MECE structured · Executive-ready · Copy and send"
+      : "World and Europe summary · MECE structured · Includes links";
+    document.getElementById("copy-btn").textContent = isEmail ? "📋 Copy Email" : "📋 Copy Summary";
+  }
+
   function openModal() {
     document.getElementById("modal-overlay").classList.add("open");
     document.body.style.overflow = "hidden";
@@ -669,19 +754,22 @@
   function closeModal() {
     document.getElementById("modal-overlay").classList.remove("open");
     document.body.style.overflow = "";
-    document.getElementById("copy-btn").textContent = "📋 Copy to Clipboard";
+    setActiveOutputTab("email");
+    document.getElementById("copy-btn").textContent = "📋 Copy Email";
     document.getElementById("copy-btn").classList.remove("copied");
   }
 
   function copyEmail() {
-    const text = document.getElementById("email-output").textContent;
+    const text = activeOutputTab === "email"
+      ? document.getElementById("email-output").textContent
+      : document.getElementById("summary-output").textContent;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById("copy-btn");
       btn.textContent = "✓ Copied!";
       btn.classList.add("copied");
-      showToast("Email copied to clipboard!");
+      showToast(activeOutputTab === "email" ? "Email copied to clipboard!" : "Summary copied to clipboard!");
       setTimeout(() => {
-        btn.textContent = "📋 Copy to Clipboard";
+        btn.textContent = activeOutputTab === "email" ? "📋 Copy Email" : "📋 Copy Summary";
         btn.classList.remove("copied");
       }, 3000);
     });
@@ -725,7 +813,10 @@
 
   document.getElementById("clear-btn").addEventListener("click", clearSelection);
   document.getElementById("generate-btn").addEventListener("click", generateEmail);
+  document.getElementById("summary-btn").addEventListener("click", generateSummary);
   document.getElementById("copy-btn").addEventListener("click", copyEmail);
+  document.getElementById("email-tab").addEventListener("click", () => setActiveOutputTab("email"));
+  document.getElementById("summary-tab").addEventListener("click", () => setActiveOutputTab("summary"));
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("modal-close-2").addEventListener("click", closeModal);
   document.getElementById("modal-overlay").addEventListener("click", (event) => {
