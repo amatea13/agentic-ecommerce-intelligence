@@ -17,6 +17,7 @@ RSS_FEEDS = [
     {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml", "region": "Global"},
     {"name": "MIT Tech Review", "url": "https://www.technologyreview.com/feed/", "region": "Global"},
     {"name": "PYMNTS", "url": "https://www.pymnts.com/feed/", "region": "Global"},
+    {"name": "Finextra", "url": "https://www.finextra.com/rss/headlines.aspx", "region": "Global"},
     {"name": "eCommerce News EU", "url": "https://ecommercenews.eu/feed/", "region": "Europe"},
     {"name": "Retail Gazette", "url": "https://www.retailgazette.co.uk/feed/", "region": "Europe"},
     {"name": "Internet Retailing", "url": "https://internetretailing.net/feed/", "region": "Europe"},
