@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic E-Commerce Intelligence</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --border: #e2e6ea;
+      --primary: #003366;
+      --primary-light: #0055a5;
+      --accent: #0078d7;
+      --accent-hover: #005fa3;
+      --text: #1a1d23;
+      --muted: #6b7280;
+      --tag-global: #dbeafe;
+      --tag-global-text: #1d4ed8;
+      --tag-europe: #dcfce7;
+      --tag-europe-text: #15803d;
+      --selected-border: #0078d7;
+      --selected-bg: #eff6ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 10px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .header-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-sub { font-size: 12px; opacity: 0.65; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    #last-updated { font-size: 12px; opacity: 0.7; }
+
+    .toolbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      max-width: 360px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px 8px 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .search-box input:focus { border-color: var(--accent); }
+
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .filter-group { display: flex; gap: 6px; }
+
+    .filter-btn {
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--surface);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .15s;
+      color: var(--muted);
+    }
+
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    #article-count { font-size: 13px; color: var(--muted); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+    }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--muted); padding: 8px; border-radius: 6px; }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+    main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 0;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading p { color: var(--muted); font-size: 14px; }
+
+    #empty-state {
+      display: none;
+      text-align: center;
+      padding: 80px 0;
+    }
+
+    #empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    #empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+    #empty-state p { color: var(--muted); font-size: 14px; }
+
+    #news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .card:hover {
+      border-color: #93c5fd;
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .card.selected {
+      border-color: var(--selected-border);
+      background: var(--selected-bg);
+    }
+
+    .card.selected .card-check { background: var(--accent); border-color: var(--accent); }
+
+    .card.selected .card-check::after {
+      content: "✓";
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .tag-source { background: #f1f5f9; color: var(--muted); }
+    .tag-global { background: var(--tag-global); color: var(--tag-global-text); }
+    .tag-europe { background: var(--tag-europe); color: var(--tag-europe-text); }
+    .tag-date { background: #fef3c7; color: #92400e; }
+
+    .card-check {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border: 2px solid var(--border);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card-summary {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .card-link {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .card-link:hover { text-decoration: underline; }
+
+    #bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 32px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+      z-index: 200;
+      animation: slideUp .2s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    #bottom-bar.visible { display: flex; }
+    #selection-label { font-size: 14px; font-weight: 500; }
+    .bottom-actions { display: flex; gap: 10px; }
+
+    .btn-white {
+      background: #fff;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-white:hover { background: #e0f0ff; }
+
+    .btn-clear {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-clear:hover { background: rgba(255,255,255,0.25); }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: fadeInScale .2s ease;
+    }
+
+    @keyframes fadeInScale {
+      from { transform: scale(.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 { font-size: 16px; font-weight: 600; }
+    .modal-header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+
+    #email-output {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      color: var(--text);
+      min-height: 300px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    #copy-btn { background: var(--accent); color: #fff; }
+    #copy-btn:hover { background: var(--accent-hover); }
+    #copy-btn.copied { background: var(--success); }
+
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all .3s;
+      z-index: 500;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .generating {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 40px 0;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0 16px; }
+      .toolbar { padding: 10px 16px; }
+      main { padding: 16px; }
+      #bottom-bar { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon">🤖</div>
+    <div>
+      <div class="header-title">Agentic E-Commerce Intelligence</div>
+      <div class="header-sub">Daily briefing · Global &amp; Europe</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="last-updated"></span>
+    <button class="btn btn-outline" id="refresh-btn" style="color:#fff;border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.1)">
+      <span id="refresh-icon">↻</span> Refresh
+    </button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Search articles…" />
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="Europe">🇪🇺 Europe</button>
+    <button class="filter-btn" data-filter="Global">🌍 Global</button>
+  </div>
+  <div class="toolbar-right">
+    <span id="article-count"></span>
+  </div>
+</div>
+
+<main>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Fetching latest agentic e-commerce news…</p>
+  </div>
+  <div id="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>No articles found</h3>
+    <p>Try adjusting your search or filter, or refresh to fetch the latest news.</p>
+  </div>
+  <div id="news-grid"></div>
+</main>
+
+<div id="bottom-bar">
+  <span id="selection-label">0 articles selected</span>
+  <div class="bottom-actions">
+    <button class="btn btn-clear" id="clear-btn">Clear selection</button>
+    <button class="btn btn-white" id="generate-btn">✉ Generate Email</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>McKinsey-Style Briefing Email</h2>
+        <p>MECE structured · Executive-ready · Copy and send</p>
+      </div>
+      <button class="btn btn-ghost" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="email-output"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="modal-close-2">Close</button>
+      <button class="btn" id="copy-btn">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let allArticles = [];
+  let selectedIds = new Set();
+  let currentFilter = "all";
+  let searchQuery = "";
+
+  async function fetchNews() {
+    showLoading(true);
+    try {
+      const res = await fetch("/api/news");
+      const data = await res.json();
+      allArticles = data.articles || [];
+      const ts = new Date(data.fetched_at);
+      document.getElementById("last-updated").textContent =
+        "Updated " + ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      renderGrid();
+    } catch (err) {
+      showToast("Failed to fetch news. Please try again.");
+      document.getElementById("loading").innerHTML =
+        '<p style="color:#dc2626">⚠ Failed to load news. <a href="#" onclick="fetchNews();return false">Retry</a></p>';
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById("news-grid");
+    const emptyState = document.getElementById("empty-state");
+
+    const filtered = allArticles.filter((article) => {
+      const matchRegion = currentFilter === "all" || article.region === currentFilter;
+      const q = searchQuery.toLowerCase();
+      const matchSearch = !q ||
+        article.title.toLowerCase().includes(q) ||
+        article.summary.toLowerCase().includes(q) ||
+        article.source.toLowerCase().includes(q);
+      return matchRegion && matchSearch;
+    });
+
+    document.getElementById("article-count").textContent =
+      filtered.length + " article" + (filtered.length !== 1 ? "s" : "");
+
+    if (filtered.length === 0) {
+      grid.innerHTML = "";
+      emptyState.style.display = "block";
+      return;
+    }
+
+    emptyState.style.display = "none";
+
+    grid.innerHTML = filtered.map((article) => `
+      <div class="card ${selectedIds.has(article.id) ? "selected" : ""}"
+           data-id="${escHtml(article.id)}" onclick="toggleCard(this, '${escHtml(article.id)}')">
+        <div class="card-header">
+          <div class="card-tags">
+            <span class="tag tag-source">${escHtml(article.source)}</span>
+            <span class="tag tag-${article.region === "Europe" ? "europe" : "global"}">${article.region === "Europe" ? "🇪🇺 Europe" : "🌍 Global"}</span>
+            <span class="tag tag-date">${escHtml(article.date)}</span>
+          </div>
+          <div class="card-check">${selectedIds.has(article.id) ? '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>' : ""}</div>
+        </div>
+        <div class="card-title">${escHtml(article.title)}</div>
+        ${article.summary ? `<div class="card-summary">${escHtml(article.summary)}</div>` : ""}
+        ${article.link ? `<div class="card-footer"><a class="card-link" href="${escHtml(article.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read full article →</a></div>` : ""}
+      </div>
+    `).join("");
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function toggleCard(el, id) {
+    if (selectedIds.has(id)) {
+      selectedIds.delete(id);
+      el.classList.remove("selected");
+      el.querySelector(".card-check").innerHTML = "";
+    } else {
+      selectedIds.add(id);
+      el.classList.add("selected");
+      el.querySelector(".card-check").innerHTML = '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>';
+    }
+    updateBottomBar();
+  }
+
+  function updateBottomBar() {
+    const bar = document.getElementById("bottom-bar");
+    const label = document.getElementById("selection-label");
+    const count = selectedIds.size;
+    if (count > 0) {
+      bar.classList.add("visible");
+      label.textContent = count + " article" + (count !== 1 ? "s" : "") + " selected";
+    } else {
+      bar.classList.remove("visible");
+    }
+  }
+
+  function clearSelection() {
+    selectedIds.clear();
+    document.querySelectorAll(".card.selected").forEach((el) => {
+      el.classList.remove("selected");
+      el.querySelector(".card-check").innerHTML = "";
+    });
+    updateBottomBar();
+  }
+
+  async function generateEmail() {
+    const articles = allArticles.filter((article) => selectedIds.has(article.id));
+    openModal();
+    document.getElementById("email-output").innerHTML =
+      '<div class="generating"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div>Composing McKinsey-style briefing…</div>';
+
+    try {
+      const res = await fetch("/api/generate-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articles }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      document.getElementById("email-output").textContent = data.email;
+    } catch (err) {
+      document.getElementById("email-output").textContent = "⚠ Error generating email. Please try again.";
+    }
+  }
+
+  function openModal() {
+    document.getElementById("modal-overlay").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("open");
+    document.body.style.overflow = "";
+    document.getElementById("copy-btn").textContent = "📋 Copy to Clipboard";
+    document.getElementById("copy-btn").classList.remove("copied");
+  }
+
+  function copyEmail() {
+    const text = document.getElementById("email-output").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById("copy-btn");
+      btn.textContent = "✓ Copied!";
+      btn.classList.add("copied");
+      showToast("Email copied to clipboard!");
+      setTimeout(() => {
+        btn.textContent = "📋 Copy to Clipboard";
+        btn.classList.remove("copied");
+      }, 3000);
+    });
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+  }
+
+  function showLoading(on) {
+    document.getElementById("loading").style.display = on ? "flex" : "none";
+    document.getElementById("news-grid").style.display = on ? "none" : "grid";
+  }
+
+  document.getElementById("refresh-btn").addEventListener("click", () => {
+    selectedIds.clear();
+    updateBottomBar();
+    fetchNews();
+  });
+
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-btn").forEach((button) => button.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.dataset.filter;
+      renderGrid();
+    });
+  });
+
+  let searchTimer;
+  document.getElementById("search-input").addEventListener("input", (event) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      searchQuery = event.target.value;
+      renderGrid();
+    }, 250);
+  });
+
+  document.getElementById("clear-btn").addEventListener("click", clearSelection);
+  document.getElementById("generate-btn").addEventListener("click", generateEmail);
+  document.getElementById("copy-btn").addEventListener("click", copyEmail);
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("modal-close-2").addEventListener("click", closeModal);
+  document.getElementById("modal-overlay").addEventListener("click", (event) => {
+    if (event.target === document.getElementById("modal-overlay")) {
+      closeModal();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  });
+
+  fetchNews();
+</script>
+</body>
+</html>
