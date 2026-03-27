@@ -57,3 +57,7 @@ http://127.0.0.1:5050
 
 - The app depends on external RSS feeds, so internet access is required for news fetching.
 - Results depend on the availability and formatting of the configured feeds.
+
+## Deployment
+
+The repository includes a [render.yaml](/Users/joannazagorowski/Documents/Playground/render.yaml) file for easy deployment on Render-compatible hosting.
