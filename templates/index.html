@@ -21,6 +21,10 @@
       --tag-europe-text: #15803d;
       --selected-border: #0078d7;
       --selected-bg: #eff6ff;
+      --unread-border: #f59e0b;
+      --unread-bg: #fffaf0;
+      --day-bg: #ffffff;
+      --day-hover: #f8fafc;
       --danger: #dc2626;
       --success: #16a34a;
       --radius: 10px;
@@ -131,6 +135,7 @@
 
     .toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
     #article-count { font-size: 13px; color: var(--muted); }
+    .toolbar-actions { display: flex; gap: 8px; }
 
     .btn {
       display: inline-flex;
@@ -194,6 +199,121 @@
     #empty-state p { color: var(--muted); font-size: 14px; }
 
     #news-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .day-group {
+      background: var(--day-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .day-group.open {
+      box-shadow: var(--shadow-md);
+    }
+
+    .day-header {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .day-header:hover {
+      background: var(--day-hover);
+    }
+
+    .day-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .day-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .day-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .day-pill.unread {
+      background: #fff3c4;
+      color: #92400e;
+    }
+
+    .day-chevron {
+      font-size: 18px;
+      color: var(--muted);
+      transition: transform .15s ease;
+    }
+
+    .day-header-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .day-header-side {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .day-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .day-action {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .day-action:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .day-group.open .day-chevron {
+      transform: rotate(90deg);
+    }
+
+    .day-body {
+      display: none;
+      padding: 0 18px 18px;
+    }
+
+    .day-group.open .day-body {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 16px;
@@ -221,14 +341,23 @@
       background: var(--selected-bg);
     }
 
-    .card.selected .card-check { background: var(--accent); border-color: var(--accent); }
-
-    .card.selected .card-check::after {
-      content: "✓";
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
+    .card.unread {
+      border-color: var(--unread-border);
+      background: var(--unread-bg);
     }
+
+    .card.selected,
+    .card.selected.unread,
+    .card.selected.read {
+      border-color: var(--selected-border);
+      background: var(--selected-bg);
+    }
+
+    .card.read {
+      opacity: 0.92;
+    }
+
+    .card.selected .card-check { background: var(--accent); border-color: var(--accent); }
 
     .card-header {
       display: flex;
@@ -252,6 +381,8 @@
     .tag-global { background: var(--tag-global); color: var(--tag-global-text); }
     .tag-europe { background: var(--tag-europe); color: var(--tag-europe-text); }
     .tag-date { background: #fef3c7; color: #92400e; }
+    .tag-unread { background: #fff3c4; color: #92400e; }
+    .tag-read { background: #ecfeff; color: #155e75; }
 
     .card-check {
       width: 20px;
@@ -264,6 +395,16 @@
       justify-content: center;
       transition: all .15s;
       flex-shrink: 0;
+    }
+
+    .card-check-icon {
+      width: 12px;
+      height: 12px;
+      stroke: #fff;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .card-title {
@@ -300,6 +441,28 @@
     }
 
     .card-link:hover { text-decoration: underline; }
+
+    .card-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .card-action-link {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .card-action-link:hover {
+      color: var(--accent);
+    }
 
     #bottom-bar {
       position: fixed;
@@ -484,6 +647,13 @@
       .toolbar { padding: 10px 16px; }
       main { padding: 16px; }
       #bottom-bar { padding: 12px 16px; }
+      .toolbar-right { width: 100%; justify-content: space-between; }
+      .toolbar-actions { width: 100%; }
+      .day-header { padding: 16px; }
+      .day-header { align-items: flex-start; }
+      .day-header-side { flex-direction: column-reverse; align-items: flex-end; }
+      .day-actions { justify-content: flex-start; }
+      .day-group.open .day-body { grid-template-columns: 1fr; padding: 0 16px 16px; }
     }
   </style>
 </head>
@@ -517,6 +687,10 @@
   </div>
   <div class="toolbar-right">
     <span id="article-count"></span>
+    <div class="toolbar-actions">
+      <button class="btn btn-outline" id="mark-all-read-btn">Mark all read</button>
+      <button class="btn btn-outline" id="mark-all-unread-btn">Reset read</button>
+    </div>
   </div>
 </div>
 
@@ -575,6 +749,8 @@
 <script>
   let allArticles = [];
   let selectedIds = new Set();
+  let readIds = new Set(JSON.parse(localStorage.getItem("readArticleIds") || "[]"));
+  let expandedDays = new Set();
   let currentFilter = "all";
   let searchQuery = "";
   let activeOutputTab = "email";
@@ -585,6 +761,7 @@
       const res = await fetch("/api/news");
       const data = await res.json();
       allArticles = data.articles || [];
+      expandedDays = new Set(getDefaultExpandedDays(allArticles));
       const ts = new Date(data.fetched_at);
       document.getElementById("last-updated").textContent =
         "Updated " + ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -623,22 +800,91 @@
 
     emptyState.style.display = "none";
 
-    grid.innerHTML = filtered.map((article) => `
-      <div class="card ${selectedIds.has(article.id) ? "selected" : ""}"
+    const groups = groupArticlesByDay(filtered);
+
+    grid.innerHTML = groups.map((group) => {
+      const isOpen = expandedDays.has(group.key);
+      const unreadCount = group.articles.filter((article) => !readIds.has(article.id)).length;
+      return `
+        <section class="day-group ${isOpen ? "open" : ""}" data-day="${escHtml(group.key)}">
+          <button class="day-header" onclick="toggleDay('${escHtml(group.key)}')">
+            <div class="day-header-main">
+              <div class="day-title">${escHtml(group.label)}</div>
+              <div class="day-meta">
+                <span class="day-pill">${group.articles.length} article${group.articles.length !== 1 ? "s" : ""}</span>
+                ${unreadCount ? `<span class="day-pill unread">${unreadCount} unread</span>` : '<span class="day-pill">All read</span>'}
+              </div>
+            </div>
+            <div class="day-header-side">
+              <div class="day-actions">
+                <button class="day-action" onclick="selectDay(event, '${escHtml(group.key)}')">Select day</button>
+                <button class="day-action" onclick="markDayRead(event, '${escHtml(group.key)}')">Mark read</button>
+              </div>
+              <span class="day-chevron">›</span>
+            </div>
+          </button>
+          <div class="day-body">
+            ${group.articles.map((article) => renderArticleCard(article)).join("")}
+          </div>
+        </section>
+      `;
+    }).join("");
+  }
+
+  function renderArticleCard(article) {
+    const isSelected = selectedIds.has(article.id);
+    const isRead = readIds.has(article.id);
+    return `
+      <div class="card ${isSelected ? "selected" : ""} ${isRead ? "read" : "unread"}"
            data-id="${escHtml(article.id)}" onclick="toggleCard(this, '${escHtml(article.id)}')">
         <div class="card-header">
           <div class="card-tags">
             <span class="tag tag-source">${escHtml(article.source)}</span>
             <span class="tag tag-${article.region === "Europe" ? "europe" : "global"}">${article.region === "Europe" ? "🇪🇺 Europe" : "🌍 Global"}</span>
             <span class="tag tag-date">${escHtml(article.date)}</span>
+            <span class="tag ${isRead ? "tag-read" : "tag-unread"}">${isRead ? "Read" : "Unread"}</span>
           </div>
-          <div class="card-check">${selectedIds.has(article.id) ? '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>' : ""}</div>
+          <div class="card-check">${isSelected ? checkIconMarkup() : ""}</div>
         </div>
         <div class="card-title">${escHtml(article.title)}</div>
         ${article.summary ? `<div class="card-summary">${escHtml(article.summary)}</div>` : ""}
-        ${article.link ? `<div class="card-footer"><a class="card-link" href="${escHtml(article.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read full article →</a></div>` : ""}
+        <div class="card-actions">
+          <button class="card-action-link" onclick="toggleReadState(event, '${escHtml(article.id)}')">${isRead ? "Mark unread" : "Mark read"}</button>
+          ${article.link ? `<a class="card-link" href="${escHtml(article.link)}" target="_blank" rel="noopener" onclick="openArticle(event, '${escHtml(article.id)}')">Read full article →</a>` : ""}
+        </div>
       </div>
-    `).join("");
+    `;
+  }
+
+  function groupArticlesByDay(articles) {
+    const groups = new Map();
+
+    articles.forEach((article) => {
+      const sortDate = article.sort_date || new Date().toISOString();
+      const date = new Date(sortDate);
+      const key = Number.isNaN(date.getTime()) ? article.date : date.toISOString().slice(0, 10);
+      const label = Number.isNaN(date.getTime())
+        ? article.date
+        : date.toLocaleDateString([], {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+
+      if (!groups.has(key)) {
+        groups.set(key, { key, label, sortDate, articles: [] });
+      }
+
+      groups.get(key).articles.push(article);
+    });
+
+    return Array.from(groups.values()).sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+  }
+
+  function getDefaultExpandedDays(articles) {
+    const groups = groupArticlesByDay(articles);
+    return groups.length ? [groups[0].key] : [];
   }
 
   function escHtml(str) {
@@ -651,6 +897,7 @@
   }
 
   function toggleCard(el, id) {
+    markArticleRead(id);
     if (selectedIds.has(id)) {
       selectedIds.delete(id);
       el.classList.remove("selected");
@@ -658,9 +905,76 @@
     } else {
       selectedIds.add(id);
       el.classList.add("selected");
-      el.querySelector(".card-check").innerHTML = '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>';
+      el.querySelector(".card-check").innerHTML = checkIconMarkup();
     }
     updateBottomBar();
+    renderGrid();
+  }
+
+  function toggleDay(dayKey) {
+    if (expandedDays.has(dayKey)) {
+      expandedDays.delete(dayKey);
+    } else {
+      expandedDays.add(dayKey);
+    }
+    renderGrid();
+  }
+
+  function getArticlesForDay(dayKey) {
+    return allArticles.filter((article) => {
+      const sortDate = article.sort_date || "";
+      return sortDate.startsWith(dayKey);
+    });
+  }
+
+  function selectDay(event, dayKey) {
+    event.stopPropagation();
+    getArticlesForDay(dayKey).forEach((article) => selectedIds.add(article.id));
+    updateBottomBar();
+    renderGrid();
+  }
+
+  function markDayRead(event, dayKey) {
+    event.stopPropagation();
+    getArticlesForDay(dayKey).forEach((article) => readIds.add(article.id));
+    persistReadIds();
+    renderGrid();
+  }
+
+  function markArticleRead(id) {
+    if (!readIds.has(id)) {
+      readIds.add(id);
+      persistReadIds();
+    }
+  }
+
+  function persistReadIds() {
+    localStorage.setItem("readArticleIds", JSON.stringify(Array.from(readIds)));
+  }
+
+  function checkIconMarkup() {
+    return `
+      <svg class="card-check-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M3.5 8.5 6.5 11.5 12.5 4.5"></path>
+      </svg>
+    `;
+  }
+
+  function openArticle(event, id) {
+    event.stopPropagation();
+    markArticleRead(id);
+    renderGrid();
+  }
+
+  function toggleReadState(event, id) {
+    event.stopPropagation();
+    if (readIds.has(id)) {
+      readIds.delete(id);
+    } else {
+      readIds.add(id);
+    }
+    persistReadIds();
+    renderGrid();
   }
 
   function updateBottomBar() {
@@ -677,11 +991,20 @@
 
   function clearSelection() {
     selectedIds.clear();
-    document.querySelectorAll(".card.selected").forEach((el) => {
-      el.classList.remove("selected");
-      el.querySelector(".card-check").innerHTML = "";
-    });
     updateBottomBar();
+    renderGrid();
+  }
+
+  function markAllRead() {
+    allArticles.forEach((article) => readIds.add(article.id));
+    persistReadIds();
+    renderGrid();
+  }
+
+  function resetReadState() {
+    readIds.clear();
+    persistReadIds();
+    renderGrid();
   }
 
   async function generateEmail() {
@@ -784,7 +1107,7 @@
 
   function showLoading(on) {
     document.getElementById("loading").style.display = on ? "flex" : "none";
-    document.getElementById("news-grid").style.display = on ? "none" : "grid";
+    document.getElementById("news-grid").style.display = on ? "none" : "flex";
   }
 
   document.getElementById("refresh-btn").addEventListener("click", () => {
@@ -812,6 +1135,8 @@
   });
 
   document.getElementById("clear-btn").addEventListener("click", clearSelection);
+  document.getElementById("mark-all-read-btn").addEventListener("click", markAllRead);
+  document.getElementById("mark-all-unread-btn").addEventListener("click", resetReadState);
   document.getElementById("generate-btn").addEventListener("click", generateEmail);
   document.getElementById("summary-btn").addEventListener("click", generateSummary);
   document.getElementById("copy-btn").addEventListener("click", copyEmail);
